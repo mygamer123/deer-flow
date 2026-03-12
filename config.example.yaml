@@ -116,6 +116,7 @@ tool_groups:
   - name: file:read
   - name: file:write
   - name: bash
+  - name: finance
 
 # ============================================================================
 # Tools Configuration
@@ -182,6 +183,23 @@ tools:
   - name: bash
     group: bash
     use: src.sandbox.tools:bash_tool
+
+  # Finance / Trade Decision Review tools (requires POLYGON_API_KEY)
+  - name: review_today_trades
+    group: finance
+    use: src.community.finance.tools:review_today_trades_tool
+
+  - name: review_date_trades
+    group: finance
+    use: src.community.finance.tools:review_date_trades_tool
+
+  - name: review_stranded_positions
+    group: finance
+    use: src.community.finance.tools:review_stranded_positions_tool
+
+  - name: review_single_trade
+    group: finance
+    use: src.community.finance.tools:review_single_trade_tool
 
 # ============================================================================
 # Sandbox Configuration
