@@ -125,6 +125,20 @@ DeerFlow has newly integrated the intelligent search and crawling toolset indepe
        api_key: your-actual-api-key-here  # Replace placeholder
    ```
 
+5. **Optional: configure finance log sources**
+
+   If you use the intraday finance tools, DeerFlow can remember named log sources and compare them:
+
+   ```yaml
+   finance:
+     default_log_source: prod
+     log_sources:
+       prod: ~/Documents/prod/fms/logs
+       dev: ~/Documents/github/fms/logs
+   ```
+
+   With the finance tools enabled, you can then ask DeerFlow to compare environments such as `prod` vs `dev` for a given trading date and get signal-drift suggestions.
+
 ### Running the Application
 
 #### Option 1: Docker (Recommended)

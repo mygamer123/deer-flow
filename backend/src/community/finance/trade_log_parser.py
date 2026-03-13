@@ -13,6 +13,7 @@ import re
 from datetime import date, datetime, timedelta
 from pathlib import Path
 
+from .log_sources import DEFAULT_LOG_DIR, get_log_source_path, has_configured_log_sources
 from .models import (
     DDWatchEvent,
     EntryEvent,
@@ -34,7 +35,7 @@ logger = logging.getLogger(__name__)
 # Constants
 # ---------------------------------------------------------------------------
 
-LOG_DIR = Path.home() / "Documents" / "prod" / "fms" / "logs"
+LOG_DIR = DEFAULT_LOG_DIR
 LOG_PREFIX = "live.log."
 TIMESTAMP_FMT = "%Y-%m-%d %H:%M:%S"
 
@@ -130,8 +131,16 @@ def _safe_int(val: str, default: int = 0) -> int:
     return int(float(val)) if val and val != "None" else default
 
 
-def _log_path(trading_date: date) -> Path:
-    return LOG_DIR / f"{LOG_PREFIX}{trading_date.isoformat()}"
+def _get_log_dir(log_source: str | None = None) -> Path:
+    if log_source is None and LOG_DIR != DEFAULT_LOG_DIR:
+        return LOG_DIR
+    if log_source is None and not has_configured_log_sources():
+        return LOG_DIR
+    return get_log_source_path(log_source)
+
+
+def _log_path(trading_date: date, log_source: str | None = None) -> Path:
+    return _get_log_dir(log_source) / f"{LOG_PREFIX}{trading_date.isoformat()}"
 
 
 # ---------------------------------------------------------------------------
@@ -139,12 +148,12 @@ def _log_path(trading_date: date) -> Path:
 # ---------------------------------------------------------------------------
 
 
-def parse_log_file(trading_date: date) -> list[ParsedTrade]:
+def parse_log_file(trading_date: date, *, log_source: str | None = None) -> list[ParsedTrade]:
     """Parse a single day's log file into a list of ParsedTrade objects.
 
     Returns an empty list if the file doesn't exist (weekends, holidays).
     """
-    path = _log_path(trading_date)
+    path = _log_path(trading_date, log_source)
     if not path.exists():
         logger.info("No log file for %s at %s", trading_date, path)
         return []
@@ -387,7 +396,12 @@ def parse_log_file(trading_date: date) -> list[ParsedTrade]:
 # ---------------------------------------------------------------------------
 
 
-def parse_log_range(start_date: date, end_date: date) -> list[ParsedTrade]:
+def parse_log_range(
+    start_date: date,
+    end_date: date,
+    *,
+    log_source: str | None = None,
+) -> list[ParsedTrade]:
     """Parse multiple days of logs and link stranded trades across days.
 
     Returns consolidated trades — stranded trades from day N are enriched
@@ -397,7 +411,7 @@ def parse_log_range(start_date: date, end_date: date) -> list[ParsedTrade]:
     current = start_date
 
     while current <= end_date:
-        day_trades = parse_log_file(current)
+        day_trades = parse_log_file(current, log_source=log_source)
         for trade in day_trades:
             sym = trade.symbol
             if sym in all_trades:
@@ -429,22 +443,23 @@ def parse_log_range(start_date: date, end_date: date) -> list[ParsedTrade]:
 # ---------------------------------------------------------------------------
 
 
-def parse_today() -> list[ParsedTrade]:
+def parse_today(*, log_source: str | None = None) -> list[ParsedTrade]:
     """Parse today's log file."""
-    return parse_log_file(date.today())
+    return parse_log_file(date.today(), log_source=log_source)
 
 
-def parse_yesterday() -> list[ParsedTrade]:
+def parse_yesterday(*, log_source: str | None = None) -> list[ParsedTrade]:
     """Parse yesterday's log file."""
-    return parse_log_file(date.today() - timedelta(days=1))
+    return parse_log_file(date.today() - timedelta(days=1), log_source=log_source)
 
 
-def get_available_log_dates() -> list[date]:
+def get_available_log_dates(*, log_source: str | None = None) -> list[date]:
     """Return sorted list of dates that have log files."""
     dates = []
-    if not LOG_DIR.exists():
+    log_dir = _get_log_dir(log_source)
+    if not log_dir.exists():
         return dates
-    for p in LOG_DIR.iterdir():
+    for p in log_dir.iterdir():
         if p.name.startswith(LOG_PREFIX) and p.is_file():
             date_str = p.name[len(LOG_PREFIX) :]
             try:

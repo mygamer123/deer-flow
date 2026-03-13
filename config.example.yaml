@@ -106,6 +106,37 @@ models:
   #       thinking:
   #         type: enabled
 
+  # Example: OpenRouter (OpenAI-compatible, 300+ models)
+  # OpenRouter provides a unified API for hundreds of models from OpenAI, Anthropic,
+  # Google, Meta, Mistral, and more — with a single API key.
+  # See: https://openrouter.ai
+  # - name: openrouter-claude-sonnet
+  #   display_name: Claude 3.5 Sonnet (OpenRouter)
+  #   use: langchain_openai:ChatOpenAI
+  #   model: anthropic/claude-3.5-sonnet
+  #   api_key: $OPENROUTER_API_KEY
+  #   base_url: https://openrouter.ai/api/v1
+  #   max_tokens: 8192
+  #   supports_vision: true
+  #   # Optional: identify your app to OpenRouter (recommended)
+  #   # default_headers:
+  #   #   HTTP-Referer: https://your-site.com
+  #   #   X-Title: YourAppName
+
+  # Example: OpenRouter with a thinking model (e.g. DeepSeek R1)
+  # - name: openrouter-deepseek-r1
+  #   display_name: DeepSeek R1 (OpenRouter)
+  #   use: langchain_openai:ChatOpenAI
+  #   model: deepseek/deepseek-r1
+  #   api_key: $OPENROUTER_API_KEY
+  #   base_url: https://openrouter.ai/api/v1
+  #   max_tokens: 16384
+  #   supports_thinking: true
+  #   supports_vision: false
+  #   # default_headers:
+  #   #   HTTP-Referer: https://your-site.com
+  #   #   X-Title: YourAppName
+
 # ============================================================================
 # Tool Groups Configuration
 # ============================================================================
@@ -117,6 +148,17 @@ tool_groups:
   - name: file:write
   - name: bash
   - name: finance
+
+# ============================================================================
+# Finance Configuration
+# ============================================================================
+# Named log sources used by finance analysis tools.
+
+# finance:
+#   default_log_source: prod
+#   log_sources:
+#     prod: ~/Documents/prod/fms/logs
+#     dev: ~/Documents/github/fms/logs
 
 # ============================================================================
 # Tools Configuration
@@ -200,6 +242,10 @@ tools:
   - name: review_single_trade
     group: finance
     use: src.community.finance.tools:review_single_trade_tool
+
+  - name: compare_signal_sources
+    group: finance
+    use: src.community.finance.tools:compare_signal_sources_tool
 
 # ============================================================================
 # Sandbox Configuration

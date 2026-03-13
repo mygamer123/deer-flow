@@ -157,6 +157,15 @@ export function InputBox({
   const [pendingSuggestion, setPendingSuggestion] = useState<string | null>(
     null,
   );
+  const [mounted, setMounted] = useState(false);
+  const modeMenuTriggerId = "chat-input-mode-trigger";
+  const reasoningEffortMenuTriggerId =
+    "chat-input-reasoning-effort-trigger";
+  const modelSelectorTriggerId = "chat-input-model-trigger";
+  const modelSelectorDialogId = "chat-input-model-dialog";
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     if (models.length === 0) {
@@ -426,7 +435,10 @@ export function InputBox({
                   : "flash"
               }
             >
-              <PromptInputActionMenuTrigger className="gap-1! px-2!">
+              <PromptInputActionMenuTrigger
+                className="gap-1! px-2!"
+                id={modeMenuTriggerId}
+              >
                 <div>
                   {context.mode === "flash" && <ZapIcon className="size-3" />}
                   {context.mode === "thinking" && (
@@ -487,7 +499,7 @@ export function InputBox({
                       <div className="ml-auto size-4" />
                     )}
                   </PromptInputActionMenuItem>
-                  {supportThinking && (
+                  {mounted && supportThinking && (
                     <PromptInputActionMenuItem
                       className={cn(
                         context.mode === "thinking"
@@ -584,9 +596,12 @@ export function InputBox({
               </DropdownMenuGroup>
             </PromptInputActionMenuContent>
           </PromptInputActionMenu>
-          {supportReasoningEffort && context.mode !== "flash" && (
+          {mounted && supportReasoningEffort && context.mode !== "flash" && (
             <PromptInputActionMenu>
-              <PromptInputActionMenuTrigger className="gap-1! px-2!">
+              <PromptInputActionMenuTrigger
+                className="gap-1! px-2!"
+                id={reasoningEffortMenuTriggerId}
+              >
                 <div className="text-xs font-normal">
                   {t.inputBox.reasoningEffort}:
                   {context.reasoning_effort === "minimal" && " " + t.inputBox.reasoningEffortMinimal}
@@ -696,37 +711,43 @@ export function InputBox({
           )}
         </PromptInputTools>
         <PromptInputTools>
-          <ModelSelector
-            open={modelDialogOpen}
-            onOpenChange={setModelDialogOpen}
-          >
-            <ModelSelectorTrigger asChild>
-              <PromptInputButton>
-                <ModelSelectorName className="text-xs font-normal">
-                  {selectedModel?.display_name}
-                </ModelSelectorName>
-              </PromptInputButton>
-            </ModelSelectorTrigger>
-            <ModelSelectorContent>
-              <ModelSelectorInput placeholder={t.inputBox.searchModels} />
-              <ModelSelectorList>
-                {models.map((m) => (
-                  <ModelSelectorItem
-                    key={m.name}
-                    value={m.name}
-                    onSelect={() => handleModelSelect(m.name)}
-                  >
-                    <ModelSelectorName>{m.display_name}</ModelSelectorName>
-                    {m.name === context.model_name ? (
-                      <CheckIcon className="ml-auto size-4" />
-                    ) : (
-                      <div className="ml-auto size-4" />
-                    )}
-                  </ModelSelectorItem>
-                ))}
-              </ModelSelectorList>
-            </ModelSelectorContent>
-          </ModelSelector>
+          {mounted ? (
+            <ModelSelector
+              open={modelDialogOpen}
+              onOpenChange={setModelDialogOpen}
+            >
+              <ModelSelectorTrigger asChild>
+                <PromptInputButton id={modelSelectorTriggerId}>
+                  <ModelSelectorName className="text-xs font-normal">
+                    {selectedModel?.display_name}
+                  </ModelSelectorName>
+                </PromptInputButton>
+              </ModelSelectorTrigger>
+              <ModelSelectorContent id={modelSelectorDialogId}>
+                <ModelSelectorInput placeholder={t.inputBox.searchModels} />
+                <ModelSelectorList>
+                  {models.map((m) => (
+                    <ModelSelectorItem
+                      key={m.name}
+                      value={m.name}
+                      onSelect={() => handleModelSelect(m.name)}
+                    >
+                      <ModelSelectorName>{m.display_name}</ModelSelectorName>
+                      {m.name === context.model_name ? (
+                        <CheckIcon className="ml-auto size-4" />
+                      ) : (
+                        <div className="ml-auto size-4" />
+                      )}
+                    </ModelSelectorItem>
+                  ))}
+                </ModelSelectorList>
+              </ModelSelectorContent>
+            </ModelSelector>
+          ) : (
+            <PromptInputButton disabled>
+              <ModelSelectorName className="text-xs font-normal" />
+            </PromptInputButton>
+          )}
           <PromptInputSubmit
             className="rounded-full"
             disabled={disabled}

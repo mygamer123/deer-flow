@@ -70,10 +70,16 @@ def _ensure_store_dir() -> Path:
     return _STORE_DIR
 
 
-def save_day_review(review: DayReview) -> Path:
+def _review_filename(prefix: str, *, trading_date: date, log_source: str | None = None, symbol: str | None = None) -> str:
+    source_suffix = f"_{log_source}" if log_source else ""
+    symbol_prefix = f"{symbol}_" if symbol else ""
+    return f"{prefix}_{symbol_prefix}{trading_date.isoformat()}{source_suffix}.json"
+
+
+def save_day_review(review: DayReview, *, log_source: str | None = None) -> Path:
     """Serialize a DayReview to JSON on disk.  Returns the file path."""
     store = _ensure_store_dir()
-    filename = f"day_review_{review.trading_date.isoformat()}.json"
+    filename = _review_filename("day_review", trading_date=review.trading_date, log_source=log_source)
     path = store / filename
     data = _ReviewEncoder().default(review) if is_dataclass(review) else asdict(review)
     with open(path, "w", encoding="utf-8") as f:
@@ -82,21 +88,33 @@ def save_day_review(review: DayReview) -> Path:
     return path
 
 
-def load_day_review_json(trading_date: date) -> dict[str, Any] | None:
+def load_day_review_json(
+    trading_date: date,
+    *,
+    log_source: str | None = None,
+) -> dict[str, Any] | None:
     """Load a previously saved day review as a raw dict (no deserialization into models)."""
-    path = _STORE_DIR / f"day_review_{trading_date.isoformat()}.json"
+    path = _STORE_DIR / _review_filename(
+        "day_review",
+        trading_date=trading_date,
+        log_source=log_source,
+    )
     if not path.exists():
         return None
     with open(path, encoding="utf-8") as f:
         return json.load(f)
 
 
-def save_trade_review(review: TradeReview) -> Path:
+def save_trade_review(review: TradeReview, *, log_source: str | None = None) -> Path:
     """Serialize a single TradeReview to JSON on disk."""
     store = _ensure_store_dir()
     symbol = review.trade.symbol
-    td = review.trade.trading_date.isoformat()
-    filename = f"trade_review_{symbol}_{td}.json"
+    filename = _review_filename(
+        "trade_review",
+        symbol=symbol,
+        trading_date=review.trade.trading_date,
+        log_source=log_source,
+    )
     path = store / filename
     with open(path, "w", encoding="utf-8") as f:
         json.dump(review, f, cls=_ReviewEncoder, indent=2, ensure_ascii=False)
@@ -104,9 +122,19 @@ def save_trade_review(review: TradeReview) -> Path:
     return path
 
 
-def load_trade_review_json(symbol: str, trading_date: date) -> dict[str, Any] | None:
+def load_trade_review_json(
+    symbol: str,
+    trading_date: date,
+    *,
+    log_source: str | None = None,
+) -> dict[str, Any] | None:
     """Load a previously saved trade review as a raw dict."""
-    path = _STORE_DIR / f"trade_review_{symbol}_{trading_date.isoformat()}.json"
+    path = _STORE_DIR / _review_filename(
+        "trade_review",
+        symbol=symbol,
+        trading_date=trading_date,
+        log_source=log_source,
+    )
     if not path.exists():
         return None
     with open(path, encoding="utf-8") as f:

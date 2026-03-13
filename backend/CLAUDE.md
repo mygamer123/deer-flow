@@ -269,6 +269,20 @@ Bridges external messaging platforms (Feishu, Slack, Telegram) to the DeerFlow a
 - `gateway_url` - Gateway API URL for auxiliary commands (default: `http://localhost:8001`)
 - Per-channel configs: `feishu` (app_id, app_secret), `slack` (bot_token, app_token), `telegram` (bot_token)
 
+### Finance Analysis Tools (`src/community/finance/`)
+
+Intraday trade review tooling can parse named log sources from `config.yaml` and compare signal drift across environments.
+
+**Components**:
+- `trade_log_parser.py` - Parses `live.log.YYYY-MM-DD` files into structured trades and signals
+- `log_sources.py` - Resolves named log sources from `config.yaml` (`finance.log_sources`)
+- `signal_compare.py` - Compares signal sets across two named sources and generates heuristic suggestions
+- `tools.py` - Exposes finance review tools plus `compare_signal_sources`
+
+**Configuration** (`config.yaml` → `finance`):
+- `default_log_source` - Default named source when a finance tool does not specify one
+- `log_sources` - Map of source name → log directory path (for example `prod`, `dev`)
+
 ### Memory System (`src/agents/memory/`)
 
 **Components**:
@@ -307,6 +321,7 @@ Bridges external messaging platforms (Feishu, Slack, Telegram) to the DeerFlow a
 - `models[]` - LLM configs with `use` class path, `supports_thinking`, `supports_vision`, provider-specific fields
 - `tools[]` - Tool configs with `use` variable path and `group`
 - `tool_groups[]` - Logical groupings for tools
+- `finance` - Named finance log sources (`default_log_source`, `log_sources`)
 - `sandbox.use` - Sandbox provider class path
 - `skills.path` / `skills.container_path` - Host and container paths to skills directory
 - `title` - Auto-title generation (enabled, max_words, max_chars, prompt_template)

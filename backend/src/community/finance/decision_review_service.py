@@ -30,10 +30,17 @@ logger = logging.getLogger(__name__)
 class DecisionReviewService:
     """Orchestrates the full trade review pipeline for a given day or date range."""
 
-    def __init__(self, *, polygon_api_key: str | None = None, theme_name: str = "intraday"):
+    def __init__(
+        self,
+        *,
+        polygon_api_key: str | None = None,
+        theme_name: str = "intraday",
+        log_source: str | None = None,
+    ):
         self.market_data = MarketDataService(polygon_api_key=polygon_api_key)
         self.theme = ThemeRegistry.get_or_raise(theme_name)
         self.analyzer = IterativeAnalyzer(self.market_data, self.theme)
+        self.log_source = log_source
 
     # -----------------------------------------------------------------------
     # Public API
@@ -41,24 +48,24 @@ class DecisionReviewService:
 
     def review_day(self, trading_date: date) -> DayReview:
         """Parse one day's log and review every eligible trade."""
-        trades = parse_log_file(trading_date)
+        trades = parse_log_file(trading_date, log_source=self.log_source)
         return self._review_trades(trading_date, trades)
 
     def review_date_range(self, start_date: date, end_date: date) -> DayReview:
         """Parse a date range (handles stranded trade carry-over) and review."""
-        trades = parse_log_range(start_date, end_date)
+        trades = parse_log_range(start_date, end_date, log_source=self.log_source)
         return self._review_trades(start_date, trades)
 
     def review_stranded(self, trading_date: date, *, lookback_days: int = 3) -> DayReview:
         """Focus on stranded/open positions, looking back *lookback_days* for context."""
         start = trading_date - timedelta(days=lookback_days)
-        trades = parse_log_range(start, trading_date)
+        trades = parse_log_range(start, trading_date, log_source=self.log_source)
         stranded = [t for t in trades if t.outcome in (TradeOutcome.STRANDED, TradeOutcome.OPEN)]
         return self._review_trades(trading_date, stranded)
 
     def review_single_trade(self, symbol: str, trading_date: date) -> TradeReview | None:
         """Review a single trade by symbol and date."""
-        trades = parse_log_file(trading_date)
+        trades = parse_log_file(trading_date, log_source=self.log_source)
         match = next((t for t in trades if t.symbol.upper() == symbol.upper()), None)
         if match is None:
             logger.warning("No trade found for %s on %s", symbol, trading_date)
