@@ -152,6 +152,39 @@ export function useThreadStream({
       listeners.current.onFinish?.(state.values);
       void queryClient.invalidateQueries({ queryKey: ["threads", "search"] });
     },
+    onError(error) {
+      let message = "An internal server error occurred. Check logs for details.";
+
+      if (error instanceof Error) {
+        message = error.message;
+      } else if (typeof error === "string") {
+        message = error;
+      } else if (
+        typeof error === "object" &&
+        error !== null &&
+        "message" in error &&
+        typeof (error as Record<string, unknown>).message === "string"
+      ) {
+        message = (error as { message: string }).message;
+      }
+
+      // LangGraph sometimes wraps the real error as a JSON string
+      try {
+        const parsed: unknown = JSON.parse(message);
+        if (
+          typeof parsed === "object" &&
+          parsed !== null &&
+          "message" in parsed &&
+          typeof (parsed as Record<string, unknown>).message === "string"
+        ) {
+          message = (parsed as { message: string }).message;
+        }
+      } catch {
+        // intentionally empty
+      }
+
+      toast.error(message, { duration: 8000 });
+    },
   });
 
   // Optimistic messages shown before the server stream responds

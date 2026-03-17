@@ -5,7 +5,9 @@
   ],
   "env": ".env",
   "graphs": {
-    "lead_agent": "src.agents:make_lead_agent"
+    "lead_agent": "src.agents:make_lead_agent",
+    "trade_review_agent": "src.agents.trading_research_agents:make_trade_review_agent",
+    "setup_research_agent": "src.agents.trading_research_agents:make_setup_research_agent"
   },
   "checkpointer": {
     "path": "./src/agents/checkpointer/async_provider.py:make_checkpointer"

@@ -144,10 +144,12 @@ models:
 
 tool_groups:
   - name: web
+  - name: research
   - name: file:read
   - name: file:write
   - name: bash
   - name: finance
+  - name: trading-research
 
 # ============================================================================
 # Finance Configuration
@@ -204,6 +206,19 @@ tools:
     use: src.community.image_search.tools:image_search_tool
     max_results: 5
 
+  # Public research tools (require Tavily API access via web_search config)
+  - name: research_topic
+    group: research
+    use: src.community.research.tools:research_topic_tool
+
+  - name: verify_claim
+    group: research
+    use: src.community.research.tools:verify_claim_tool
+
+  - name: list_research_reports
+    group: research
+    use: src.community.research.tools:list_research_reports_tool
+
   # File operations tools
   - name: ls
     group: file:read
@@ -246,6 +261,27 @@ tools:
   - name: compare_signal_sources
     group: finance
     use: src.community.finance.tools:compare_signal_sources_tool
+
+  # Structured P0 trading research workflow tools
+  - name: run_trade_review
+    group: trading-research
+    use: src.trading_research.tools:run_trade_review_tool
+
+  - name: run_setup_research
+    group: trading-research
+    use: src.trading_research.tools:run_setup_research_tool
+
+  - name: run_aggregate_trade_review
+    group: trading-research
+    use: src.trading_research.tools:run_aggregate_trade_review_tool
+
+  - name: run_trade_diagnostic
+    group: trading-research
+    use: src.trading_research.tools:run_trade_diagnostic_tool
+
+  - name: run_strategy_improvement_loop
+    group: trading-research
+    use: src.trading_research.tools:run_strategy_improvement_loop_tool
 
 # ============================================================================
 # Sandbox Configuration

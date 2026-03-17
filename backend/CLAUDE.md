@@ -217,6 +217,7 @@ Proxied through nginx: `/api/langgraph/*` → LangGraph, all other `/api/*` → 
 - `jina_ai/` - Web fetch via Jina reader API with readability extraction
 - `firecrawl/` - Web scraping via Firecrawl API
 - `image_search/` - Image search via DuckDuckGo
+- `research/` - Topic research, claim verification, and report persistence (uses Tavily)
 
 ### MCP System (`src/mcp/`)
 
@@ -282,6 +283,21 @@ Intraday trade review tooling can parse named log sources from `config.yaml` and
 **Configuration** (`config.yaml` → `finance`):
 - `default_log_source` - Default named source when a finance tool does not specify one
 - `log_sources` - Map of source name → log directory path (for example `prod`, `dev`)
+
+### Research Tools (`src/community/research/`)
+
+Topic research and claim verification tools using web search and page fetching.
+
+**Components**:
+- `models.py` - Data models: `Evidence`, `Claim`, `ResearchReport`, `VerificationStatus`, `SourceType`
+- `research_service.py` - `ResearchService` orchestrator using TavilyClient for multi-round search, page fetching, claim extraction, and verification
+- `tools.py` - Three `@tool()` functions: `research_topic`, `verify_claim`, `list_research_reports`
+- `report_builder.py` - Markdown report generation for research reports and claim verification results
+- `research_store.py` - JSON persistence to `~/.deer-flow/research/reports/`
+
+**Tool registration** (`config.yaml` → `tools` and `tool_groups`):
+- Group: `research`
+- Tools: `research_topic` (depth 1-3), `verify_claim`, `list_research_reports`
 
 ### Memory System (`src/agents/memory/`)
 
