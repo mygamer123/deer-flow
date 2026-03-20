@@ -1,5 +1,11 @@
 # 🦌 DeerFlow - 2.0
 
+English | [中文](./README_zh.md)
+
+[![Python](https://img.shields.io/badge/Python-3.12%2B-3776AB?logo=python&logoColor=white)](./backend/pyproject.toml)
+[![Node.js](https://img.shields.io/badge/Node.js-22%2B-339933?logo=node.js&logoColor=white)](./Makefile)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
+
 <a href="https://trendshift.io/repositories/14699" target="_blank"><img src="https://trendshift.io/api/badge/repositories/14699" alt="bytedance%2Fdeer-flow | Trendshift" style="width: 250px; height: 55px;" width="250" height="55"/></a>
 > On February 28th, 2026, DeerFlow claimed the 🏆 #1 spot on GitHub Trending following the launch of version 2. Thanks a million to our incredible community — you made this happen! 💪🔥
 
@@ -12,17 +18,25 @@ https://github.com/user-attachments/assets/a8bcadc4-e040-4cf2-8fda-dd768b999c18
 
 ## Official Website
 
-Learn more and see **real demos** on our official website.
+[<img width="2880" height="1600" alt="image" src="https://github.com/user-attachments/assets/a598c49f-3b2f-41ea-a052-05e21349188a" />](https://deerflow.tech)
 
-**[deerflow.tech](https://deerflow.tech/)**
+Learn more and see **real demos** on our [**official website**](https://deerflow.tech).
+
+## Coding Plan from ByteDance Volcengine
+
+<img width="4808" height="2400" alt="英文方舟" src="https://github.com/user-attachments/assets/2ecc7b9d-50be-4185-b1f7-5542d222fb2d" />
+
+- We strongly recommend using Doubao-Seed-2.0-Code, DeepSeek v3.2 and Kimi 2.5 to run DeerFlow
+- [Learn more](https://www.byteplus.com/en/activity/codingplan?utm_campaign=deer_flow&utm_content=deer_flow&utm_medium=devrel&utm_source=OWO&utm_term=deer_flow)
+- [中国大陆地区的开发者请点击这里](https://www.volcengine.com/activity/codingplan?utm_campaign=deer_flow&utm_content=deer_flow&utm_medium=devrel&utm_source=OWO&utm_term=deer_flow)
 
 ## InfoQuest
 
 DeerFlow has newly integrated the intelligent search and crawling toolset independently developed by BytePlus--[InfoQuest (supports free online experience)](https://docs.byteplus.com/en/docs/InfoQuest/What_is_Info_Quest)
 
 <a href="https://docs.byteplus.com/en/docs/InfoQuest/What_is_Info_Quest" target="_blank">
-  <img 
-    src="https://sf16-sg.tiktokcdn.com/obj/eden-sg/hubseh7bsbps/20251208-160108.png"   alt="InfoQuest_banner" 
+  <img
+    src="https://sf16-sg.tiktokcdn.com/obj/eden-sg/hubseh7bsbps/20251208-160108.png"   alt="InfoQuest_banner"
   />
 </a>
 
@@ -42,7 +56,7 @@ DeerFlow has newly integrated the intelligent search and crawling toolset indepe
     - [Advanced](#advanced)
       - [Sandbox Mode](#sandbox-mode)
       - [MCP Server](#mcp-server)
-    - [IM Channels](#im-channels)
+      - [IM Channels](#im-channels)
   - [From Deep Research to Super Agent Harness](#from-deep-research-to-super-agent-harness)
   - [Core Features](#core-features)
     - [Skills \& Tools](#skills--tools)
@@ -94,9 +108,17 @@ DeerFlow has newly integrated the intelligent search and crawling toolset indepe
        api_key: $OPENAI_API_KEY          # API key (recommended: use env var)
        max_tokens: 4096                  # Maximum tokens per request
        temperature: 0.7                  # Sampling temperature
+
+     - name: openrouter-gemini-2.5-flash
+       display_name: Gemini 2.5 Flash (OpenRouter)
+       use: langchain_openai:ChatOpenAI
+       model: google/gemini-2.5-flash-preview
+       api_key: $OPENAI_API_KEY          # OpenRouter still uses the OpenAI-compatible field name here
+       base_url: https://openrouter.ai/api/v1
    ```
 
-  
+   OpenRouter and similar OpenAI-compatible gateways should be configured with `langchain_openai:ChatOpenAI` plus `base_url`. If you prefer a provider-specific environment variable name, point `api_key` at that variable explicitly (for example `api_key: $OPENROUTER_API_KEY`).
+
 4. **Set API keys for your configured model(s)**
 
    Choose one of the following methods:
@@ -107,6 +129,7 @@ DeerFlow has newly integrated the intelligent search and crawling toolset indepe
    ```bash
    TAVILY_API_KEY=your-tavily-api-key
    OPENAI_API_KEY=your-openai-api-key
+   # OpenRouter also uses OPENAI_API_KEY when your config uses langchain_openai:ChatOpenAI + base_url.
    # Add other provider keys as needed
    INFOQUEST_API_KEY=your-infoquest-api-key
    ```
@@ -143,17 +166,26 @@ DeerFlow has newly integrated the intelligent search and crawling toolset indepe
 
 #### Option 1: Docker (Recommended)
 
-The fastest way to get started with a consistent environment:
+**Development** (hot-reload, source mounts):
 
-1. **Initialize and start**:
-   ```bash
-   make docker-init    # Pull sandbox image (Only once or when image updates)
-   make docker-start   # Start services (auto-detects sandbox mode from config.yaml)
-   ```
+```bash
+make docker-init    # Pull sandbox image (only once or when image updates)
+make docker-start   # Start services (auto-detects sandbox mode from config.yaml)
+```
 
-   `make docker-start` now starts `provisioner` only when `config.yaml` uses provisioner mode (`sandbox.use: src.community.aio_sandbox:AioSandboxProvider` with `provisioner_url`).
+`make docker-start` starts `provisioner` only when `config.yaml` uses provisioner mode (`sandbox.use: deerflow.community.aio_sandbox:AioSandboxProvider` with `provisioner_url`).
 
-2. **Access**: http://localhost:2026
+**Production** (builds images locally, mounts runtime config and data):
+
+```bash
+make up     # Build images and start all production services
+make down   # Stop and remove containers
+```
+
+> [!NOTE]
+> The LangGraph agent server currently runs via `langgraph dev` (the open-source CLI server).
+
+Access: http://localhost:2026
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for detailed Docker development guide.
 
@@ -335,7 +367,11 @@ A standard Agent Skill is a structured capability module — a Markdown file tha
 
 Skills are loaded progressively — only when the task needs them, not all at once. This keeps the context window lean and makes DeerFlow work well even with token-sensitive models.
 
+When you install `.skill` archives through the Gateway, DeerFlow accepts standard optional frontmatter metadata such as `version`, `author`, and `compatibility` instead of rejecting otherwise valid external skills.
+
 Tools follow the same philosophy. DeerFlow comes with a core toolset — web search, web fetch, file operations, bash execution — and supports custom tools via MCP servers and Python functions. Swap anything. Add anything.
+
+Gateway-generated follow-up suggestions now normalize both plain-string model output and block/list-style rich content before parsing the JSON array response, so provider-specific content wrappers do not silently drop suggestions.
 
 ```
 # Paths inside the sandbox container
@@ -415,6 +451,8 @@ Most agents forget everything the moment a conversation ends. DeerFlow remembers
 
 Across sessions, DeerFlow builds a persistent memory of your profile, preferences, and accumulated knowledge. The more you use it, the better it knows you — your writing style, your technical stack, your recurring workflows. Memory is stored locally and stays under your control.
 
+Memory updates now skip duplicate fact entries at apply time, so repeated preferences and context do not accumulate endlessly across sessions.
+
 ## Recommended Models
 
 DeerFlow is model-agnostic — it works with any LLM that implements the OpenAI-compatible API. That said, it performs best with models that support:
@@ -429,7 +467,7 @@ DeerFlow is model-agnostic — it works with any LLM that implements the OpenAI-
 DeerFlow can be used as an embedded Python library without running the full HTTP services. The `DeerFlowClient` provides direct in-process access to all agent and Gateway capabilities, returning the same response schemas as the HTTP Gateway API:
 
 ```python
-from src.client import DeerFlowClient
+from deerflow.client import DeerFlowClient
 
 client = DeerFlowClient()
 
@@ -448,7 +486,7 @@ client.update_skill("web-search", enabled=True)
 client.upload_files("thread-1", ["./report.pdf"])  # {"success": True, "files": [...]}
 ```
 
-All dict-returning methods are validated against Gateway Pydantic response models in CI (`TestGatewayConformance`), ensuring the embedded client stays in sync with the HTTP API schemas. See `backend/src/client.py` for full API documentation.
+All dict-returning methods are validated against Gateway Pydantic response models in CI (`TestGatewayConformance`), ensuring the embedded client stays in sync with the HTTP API schemas. See `backend/packages/harness/deerflow/client.py` for full API documentation.
 
 ## Documentation
 
